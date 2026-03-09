@@ -1,0 +1,55 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
+# shellcheck source=bin/libharness.sh
+source "$SCRIPT_DIR/libharness.sh"
+
+harness_load_config
+
+if [[ -z "${REPO_PATH:-}" ]]; then
+  harness_err "no install metadata found at $HARNESS_CONFIG_PATH"
+  exit 1
+fi
+
+if [[ ! -d "$REPO_PATH/.git" ]]; then
+  harness_err "installed repo path is missing or not a git repository: $REPO_PATH"
+  exit 1
+fi
+
+CURRENT_VERSION="$(harness_current_version "$REPO_PATH")"
+CURRENT_BRANCH="$(git -C "$REPO_PATH" branch --show-current 2>/dev/null || true)"
+CURRENT_COMMIT="$(git -C "$REPO_PATH" rev-parse --short HEAD)"
+
+harness_log "Repo path: $REPO_PATH"
+harness_log "Channel: ${CHANNEL:-unknown}"
+harness_log "Current version: $CURRENT_VERSION"
+harness_log "Current branch: ${CURRENT_BRANCH:-detached}"
+harness_log "Current commit: $CURRENT_COMMIT"
+
+for target_root in "$HOME/.agents/skills" "$HOME/.claude/skills"; do
+  label="$(harness_target_label "$target_root")"
+  namespace=""
+  if [[ "$target_root" == "$HOME/.agents/skills" ]]; then
+    namespace="${CODEX_NAMESPACE:-}"
+  elif [[ "$target_root" == "$HOME/.claude/skills" ]]; then
+    namespace="${CLAUDE_NAMESPACE:-}"
+  fi
+
+  if [[ -n "$namespace" && -d "$target_root/$namespace" ]]; then
+    harness_log "$label install: present at $target_root/$namespace"
+    broken_links=()
+    while IFS= read -r broken_link; do
+      broken_links+=("$broken_link")
+    done < <(harness_collect_broken_links "$target_root" "$namespace")
+    if [[ "${#broken_links[@]}" -eq 0 ]]; then
+      harness_log "Broken symlinks: none"
+    else
+      harness_log "Broken symlinks:"
+      printf '%s\n' "${broken_links[@]}" | sed 's/^/  - /'
+    fi
+  else
+    harness_log "$label install: not present"
+  fi
+done

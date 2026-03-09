@@ -23,9 +23,30 @@ Once bootstrapped, the target repository becomes the system of record. The agent
 
 ### 1. Install the skills globally
 
-Install these skills into your user-level skills directory so they are available across repositories. For example, Codex-style setups typically use the user-scoped `.agents/skills` directory, while Claude Code typically uses `.claude/skills`. Do not install them into the repository you plan to build.
+Use the installer in this repository instead of copying skills manually:
 
-This repository should remain a reusable skill source, not a subdirectory inside the target application repository.
+```bash
+./bin/harness-install
+```
+
+The installer:
+
+- clones this repository to `~/.local/share/harness`
+- defaults to the `stable` channel
+- installs into `~/.agents/skills` when that Codex target exists
+- installs into `~/.claude/skills` when that Claude Code target exists
+- installs into both when both exist
+- creates both target roots when neither exists yet
+- creates a collision-safe namespace directory such as `~/.agents/skills/harness` or `~/.agents/skills/harness_1`
+- places symlinks inside that namespace using the actual skill names from each `SKILL.md`, such as `harness-analyze` and `harness-architect`
+
+If you want the default branch instead of the newest release tag, pass `latest`:
+
+```bash
+./bin/harness-install latest
+```
+
+For curl-based bootstrap usage, the repository also includes a small [install.sh](/Users/darren/dev/harness/install.sh) entrypoint that clones the repo and then delegates to the local installer.
 
 ### 2. Open your target repository
 
@@ -190,6 +211,16 @@ The bootstrap skill in this repository currently runs:
 - `./validate_harness_contract.py` from within the bootstrap skill directory
 
 The seed script creates the baseline contract. The validation script checks that required files and directories exist and that `harness.yml` conforms to the expected capability schema.
+
+## Installer Commands
+
+The repository now includes:
+
+- [bin/harness-install](/Users/darren/dev/harness/bin/harness-install): clone or fetch the canonical local repo, select a channel, and install symlinked skills into any detected targets
+- [bin/harness-update](/Users/darren/dev/harness/bin/harness-update): fetch updates for the installed channel and repair missing or broken symlinks without recreating healthy ones
+- [bin/harness-status](/Users/darren/dev/harness/bin/harness-status): show repo path, selected channel, current version, installed targets, and broken symlinks
+
+Install metadata is stored in `~/.local/share/harness/.install-config`.
 
 ## Available Skills
 

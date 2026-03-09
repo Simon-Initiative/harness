@@ -1,0 +1,37 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
+# shellcheck source=bin/libharness.sh
+source "$SCRIPT_DIR/libharness.sh"
+
+harness_require_git
+harness_load_config
+
+if [[ -z "${REPO_PATH:-}" ]]; then
+  harness_err "no install metadata found at $HARNESS_CONFIG_PATH"
+  exit 1
+fi
+
+CHANNEL="$(harness_normalize_channel "${1:-${CHANNEL:-stable}}")"
+REPO_URL="${REPO_URL:-$(harness_repo_url)}"
+
+OLD_VERSION="$(harness_current_version "$REPO_PATH")"
+harness_clone_or_fetch_repo "$REPO_PATH" "$REPO_URL"
+SELECTED_REF="$(harness_checkout_channel "$REPO_PATH" "$CHANNEL")"
+NEW_VERSION="$(harness_current_version "$REPO_PATH")"
+
+if [[ -n "${CODEX_TARGET_ROOT:-}" && -n "${CODEX_NAMESPACE:-}" ]]; then
+  harness_repair_target_links "$REPO_PATH" "$CHANNEL" "$CODEX_TARGET_ROOT" "$CODEX_NAMESPACE"
+fi
+if [[ -n "${CLAUDE_TARGET_ROOT:-}" && -n "${CLAUDE_NAMESPACE:-}" ]]; then
+  harness_repair_target_links "$REPO_PATH" "$CHANNEL" "$CLAUDE_TARGET_ROOT" "$CLAUDE_NAMESPACE"
+fi
+
+harness_save_config
+
+harness_log "Repo path: $REPO_PATH"
+harness_log "Channel: $CHANNEL"
+harness_log "Selected ref: $SELECTED_REF"
+harness_log "Updated: $OLD_VERSION -> $NEW_VERSION"

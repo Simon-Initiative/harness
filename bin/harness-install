@@ -1,0 +1,61 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
+# shellcheck source=bin/libharness.sh
+source "$SCRIPT_DIR/libharness.sh"
+
+harness_require_git
+
+CHANNEL="$(harness_normalize_channel "${1:-stable}")"
+REPO_PATH="${HARNESS_REPO_PATH:-$HARNESS_DEFAULT_REPO_PATH}"
+REPO_URL="$(harness_repo_url)"
+
+harness_clone_or_fetch_repo "$REPO_PATH" "$REPO_URL"
+SELECTED_REF="$(harness_checkout_channel "$REPO_PATH" "$CHANNEL")"
+CURRENT_VERSION="$(harness_current_version "$REPO_PATH")"
+
+declare -a TARGET_ROOTS=()
+while IFS= read -r target_root; do
+  TARGET_ROOTS+=("$target_root")
+done < <(harness_detect_target_roots)
+
+CODEX_TARGET_ROOT=""
+CODEX_NAMESPACE=""
+CLAUDE_TARGET_ROOT=""
+CLAUDE_NAMESPACE=""
+
+declare -a INSTALLED_TARGETS=()
+declare -a LINKED_SKILLS=()
+
+for target_root in "${TARGET_ROOTS[@]}"; do
+  namespace="$(harness_pick_namespace "$target_root" "$REPO_PATH" "harness")"
+  linked_here=()
+  while IFS= read -r linked_skill; do
+    linked_here+=("$linked_skill")
+  done < <(harness_install_target "$REPO_PATH" "$CHANNEL" "$target_root" "$namespace")
+  INSTALLED_TARGETS+=("$(harness_target_label "$target_root"): $target_root/$namespace")
+  LINKED_SKILLS+=("${linked_here[@]}")
+
+  if [[ "$target_root" == "$HOME/.agents/skills" ]]; then
+    CODEX_TARGET_ROOT="$target_root"
+    CODEX_NAMESPACE="$namespace"
+  elif [[ "$target_root" == "$HOME/.claude/skills" ]]; then
+    CLAUDE_TARGET_ROOT="$target_root"
+    CLAUDE_NAMESPACE="$namespace"
+  fi
+done
+
+harness_save_config
+
+harness_log "Repo path: $REPO_PATH"
+harness_log "Channel: $CHANNEL"
+harness_log "Selected ref: $SELECTED_REF"
+harness_log "Current version: $CURRENT_VERSION"
+harness_log "Installed targets:"
+for target in "${INSTALLED_TARGETS[@]}"; do
+  harness_log "  - $target"
+done
+harness_log "Linked skills:"
+printf '%s\n' "${LINKED_SKILLS[@]}" | sort -u | sed 's/^/  - /'
