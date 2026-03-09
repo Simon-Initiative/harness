@@ -49,13 +49,13 @@ If you want the default branch instead of the newest release tag, pass `latest`:
 For curl-based bootstrap usage, the repository also includes a small [install.sh](/Users/darren/dev/harness/install.sh) entrypoint that clones the repo and then delegates to the local installer:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/Simon-Initiative/harness/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/Simon-Initiative/harness/master/install.sh | bash
 ```
 
 To install the default branch instead of the newest release tag:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/Simon-Initiative/harness/main/install.sh | bash -s -- latest
+curl -fsSL https://raw.githubusercontent.com/Simon-Initiative/harness/master/install.sh | bash -s -- latest
 ```
 
 ### 2. Open your target repository
