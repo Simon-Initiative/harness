@@ -4,14 +4,14 @@ This repository is a reusable engineering harness for agent-assisted software de
 
 The key idea is simple: the reusable skills live here, but the durable project context lives in the target repository. The harness depends on convention. Agents work reliably only when the target repository exposes a stable, versioned set of required files and directories that define architecture, product intent, tooling, testing, operations, plans, and review standards.
 
-Do not install this repository into each application repository. Instead, install these skills into your user-level agent skills directory, then run the bootstrap skill from inside the target repository you want to prepare.
+Do not install this repository into each application repository. Instead, install these skills into your user-level skills directory, then run the bootstrap skill from inside the target repository you want to prepare.
 
 ## How It Works
 
 The operating model is:
 
 1. Keep this repository as the source of truth for the reusable skills.
-2. Install those skills into your user-level agent skills directory.
+2. Install those skills into your user-level skills directory.
 3. Open the target repository you want to work on.
 4. Invoke `$harness-bootstrap` inside that target repository.
 5. Let the bootstrap skill create the required harness contract files and directories.
@@ -23,7 +23,7 @@ Once bootstrapped, the target repository becomes the system of record. The agent
 
 ### 1. Install the skills globally
 
-Install these skills into your user-level skills directory so they are available across repositories. For Codex-style setups, that means the user-scoped `.agents/skills` area, not the repository you plan to build.
+Install these skills into your user-level skills directory so they are available across repositories. For example, Codex-style setups typically use the user-scoped `.agents/skills` directory, while Claude Code typically uses `.claude/skills`. Do not install them into the repository you plan to build.
 
 This repository should remain a reusable skill source, not a subdirectory inside the target application repository.
 
@@ -186,8 +186,8 @@ The markdown files hold the narrative guidance. `harness.yml` gives the agent a 
 
 The bootstrap skill in this repository currently runs:
 
-- `.agents/scripts/seed_harness_contract.py`
-- `.agents/scripts/validate_harness_contract.py`
+- `./seed_harness_contract.py` from within the bootstrap skill directory
+- `./validate_harness_contract.py` from within the bootstrap skill directory
 
 The seed script creates the baseline contract. The validation script checks that required files and directories exist and that `harness.yml` conforms to the expected capability schema.
 
