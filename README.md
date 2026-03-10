@@ -110,12 +110,8 @@ docs/
 ├── generated/
 │   └── db-schema.md
 ├── product-specs/
-│   ├── index.md
-│   └── new-user-onboarding.md
+│   └── index.md
 └── references/
-    ├── design-system-reference-llms.txt
-    ├── nixpacks-llms.txt
-    └── uv-llms.txt
 ```
 
 This is not just an example layout. It is the contract the harness expects to find in the target repository.
@@ -211,7 +207,7 @@ The markdown files hold the narrative guidance. `harness.yml` gives the agent a 
 | `docs/design-docs/` | Decision records, design history, and durable engineering beliefs. |
 | `docs/product-specs/` | Feature-level product specs and user-facing behavior definitions. |
 | `docs/generated/` | Generated reference artifacts such as schema inventories or other machine-produced facts. |
-| `docs/references/` | External framework, platform, design-system, or tool references that agents may need during implementation. |
+| `docs/references/` | External framework, platform, design-system, or tool references that agents may need during implementation. Bootstrap ensures the directory exists but does not seed reference files into it. |
 
 ## Bootstrap Behavior
 

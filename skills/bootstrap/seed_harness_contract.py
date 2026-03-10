@@ -61,10 +61,6 @@ links: {}
     "docs/exec-plans/tech-debt-tracker.md": "# Tech Debt Tracker\n",
     "docs/generated/db-schema.md": "# Database Schema\n\nGenerated artifact placeholder.\n",
     "docs/product-specs/index.md": "# Product Specs Index\n",
-    "docs/product-specs/new-user-onboarding.md": "# New User Onboarding\n",
-    "docs/references/design-system-reference-llms.txt": "",
-    "docs/references/nixpacks-llms.txt": "",
-    "docs/references/uv-llms.txt": "",
 }
 
 

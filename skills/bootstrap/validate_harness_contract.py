@@ -36,7 +36,6 @@ REQUIRED_FILES = [
     "docs/exec-plans/tech-debt-tracker.md",
     "docs/generated/db-schema.md",
     "docs/product-specs/index.md",
-    "docs/product-specs/new-user-onboarding.md",
 ]
 
 REQUIRED_DIRS = [
