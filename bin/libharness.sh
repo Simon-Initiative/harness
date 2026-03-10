@@ -5,6 +5,7 @@ set -euo pipefail
 readonly HARNESS_DEFAULT_REPO_URL="${HARNESS_DEFAULT_REPO_URL:-https://github.com/Simon-Initiative/harness.git}"
 readonly HARNESS_DEFAULT_REPO_PATH="${HARNESS_DEFAULT_REPO_PATH:-$HOME/.local/share/harness}"
 readonly HARNESS_CONFIG_PATH="${HARNESS_CONFIG_PATH:-$HOME/.local/share/harness/.install-config}"
+readonly HARNESS_VERSION_FILE="version.json"
 
 harness_log() {
   printf '%s\n' "$*"
@@ -68,6 +69,7 @@ harness_save_config() {
 CHANNEL=${CHANNEL}
 REPO_PATH=${REPO_PATH}
 REPO_URL=${REPO_URL}
+INSTALLED_VERSION=${INSTALLED_VERSION:-}
 CODEX_TARGET_ROOT=${CODEX_TARGET_ROOT:-}
 CODEX_NAMESPACE=${CODEX_NAMESPACE:-}
 CLAUDE_TARGET_ROOT=${CLAUDE_TARGET_ROOT:-}
@@ -156,16 +158,34 @@ harness_checkout_channel() {
   printf '%s\n' "origin/$default_branch"
 }
 
-harness_current_version() {
+harness_version_file_path() {
   local repo_path="$1"
-  local tag
-  tag="$(git -C "$repo_path" describe --tags --exact-match 2>/dev/null || true)"
-  if [[ -n "$tag" ]]; then
-    printf '%s\n' "$tag"
-    return
+  printf '%s\n' "$repo_path/$HARNESS_VERSION_FILE"
+}
+
+harness_repo_version() {
+  local repo_path="$1"
+  local version_file
+  local version
+
+  version_file="$(harness_version_file_path "$repo_path")"
+  if [[ ! -f "$version_file" ]]; then
+    harness_err "missing $HARNESS_VERSION_FILE in $repo_path"
+    exit 1
   fi
 
-  git -C "$repo_path" rev-parse --short HEAD
+  version="$(sed -n 's/^[[:space:]]*"version"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' "$version_file" | head -n 1)"
+  if [[ -z "$version" ]]; then
+    harness_err "unable to read version from $version_file"
+    exit 1
+  fi
+
+  printf '%s\n' "$version"
+}
+
+harness_current_version() {
+  local repo_path="$1"
+  harness_repo_version "$repo_path"
 }
 
 harness_list_skill_dirs() {

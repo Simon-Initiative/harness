@@ -33,6 +33,7 @@ The installer:
 
 - clones this repository to `~/.local/share/harness`
 - defaults to the `stable` channel
+- reads the repo version from `version.json`
 - installs into `~/.agents/skills` when that Codex target exists
 - installs into `~/.claude/skills` when that Claude Code target exists
 - installs into both when both exist
@@ -224,9 +225,9 @@ The repository now includes:
 
 - [bin/harness-install](/Users/darren/dev/harness/bin/harness-install): clone or fetch the canonical local repo, select a channel, and install symlinked skills into any detected targets
 - [bin/harness-update](/Users/darren/dev/harness/bin/harness-update): fetch updates for the installed channel and repair missing or broken symlinks without recreating healthy ones
-- [bin/harness-status](/Users/darren/dev/harness/bin/harness-status): show repo path, selected channel, current version, installed targets, and broken symlinks
+- [bin/harness-status](/Users/darren/dev/harness/bin/harness-status): show repo path, selected channel, repo version, installed version, installed targets, and broken symlinks
 
-Install metadata is stored in `~/.local/share/harness/.install-config`.
+The repo version is tracked in `version.json`. Local install metadata such as the selected channel and installed version is stored in `~/.local/share/harness/.install-config`.
 
 ## Available Skills
 

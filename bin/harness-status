@@ -21,10 +21,12 @@ fi
 CURRENT_VERSION="$(harness_current_version "$REPO_PATH")"
 CURRENT_BRANCH="$(git -C "$REPO_PATH" branch --show-current 2>/dev/null || true)"
 CURRENT_COMMIT="$(git -C "$REPO_PATH" rev-parse --short HEAD)"
+INSTALLED_VERSION="${INSTALLED_VERSION:-unknown}"
 
 harness_log "Repo path: $REPO_PATH"
 harness_log "Channel: ${CHANNEL:-unknown}"
-harness_log "Current version: $CURRENT_VERSION"
+harness_log "Repo version: $CURRENT_VERSION"
+harness_log "Installed version: $INSTALLED_VERSION"
 harness_log "Current branch: ${CURRENT_BRANCH:-detached}"
 harness_log "Current commit: $CURRENT_COMMIT"
 

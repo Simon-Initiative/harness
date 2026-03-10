@@ -15,6 +15,7 @@ REPO_URL="$(harness_repo_url)"
 harness_clone_or_fetch_repo "$REPO_PATH" "$REPO_URL"
 SELECTED_REF="$(harness_checkout_channel "$REPO_PATH" "$CHANNEL")"
 CURRENT_VERSION="$(harness_current_version "$REPO_PATH")"
+INSTALLED_VERSION="$CURRENT_VERSION"
 
 declare -a TARGET_ROOTS=()
 while IFS= read -r target_root; do
@@ -52,7 +53,8 @@ harness_save_config
 harness_log "Repo path: $REPO_PATH"
 harness_log "Channel: $CHANNEL"
 harness_log "Selected ref: $SELECTED_REF"
-harness_log "Current version: $CURRENT_VERSION"
+harness_log "Repo version: $CURRENT_VERSION"
+harness_log "Installed version: $INSTALLED_VERSION"
 harness_log "Installed targets:"
 for target in "${INSTALLED_TARGETS[@]}"; do
   harness_log "  - $target"

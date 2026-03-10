@@ -21,6 +21,7 @@ OLD_VERSION="$(harness_current_version "$REPO_PATH")"
 harness_clone_or_fetch_repo "$REPO_PATH" "$REPO_URL"
 SELECTED_REF="$(harness_checkout_channel "$REPO_PATH" "$CHANNEL")"
 NEW_VERSION="$(harness_current_version "$REPO_PATH")"
+INSTALLED_VERSION="$NEW_VERSION"
 
 if [[ -n "${CODEX_TARGET_ROOT:-}" && -n "${CODEX_NAMESPACE:-}" ]]; then
   harness_repair_target_links "$REPO_PATH" "$CHANNEL" "$CODEX_TARGET_ROOT" "$CODEX_NAMESPACE"
@@ -34,4 +35,6 @@ harness_save_config
 harness_log "Repo path: $REPO_PATH"
 harness_log "Channel: $CHANNEL"
 harness_log "Selected ref: $SELECTED_REF"
+harness_log "Repo version: $NEW_VERSION"
+harness_log "Installed version: $INSTALLED_VERSION"
 harness_log "Updated: $OLD_VERSION -> $NEW_VERSION"
