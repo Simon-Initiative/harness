@@ -40,7 +40,8 @@ Always load before planning:
 3. Create or update `plan.md` from the plan template.
 4. Build numbered phases with tasks, testing tasks, gates, and dependencies.
 5. Use `harness.yml` and repository docs to decide which cross-cutting concerns must be planned explicitly.
-6. Run:
-   - `python3 ../requirements/scripts/requirements_trace.py <work_item_dir> --action verify_plan`
-   - `python3 ../requirements/scripts/requirements_trace.py <work_item_dir> --action master_validate --stage plan_present`
-   - `python3 ../validate/scripts/validate_work_item.py <work_item_dir> --check plan`
+6. Resolve `<skills_root>` as the directory that contains the installed harness skills (`plan/`, `requirements/`, `validate/`, etc.). Do not resolve script paths relative to the repository or current working directory.
+7. Run:
+   - `python3 <skills_root>/requirements/scripts/requirements_trace.py <work_item_dir> --action verify_plan`
+   - `python3 <skills_root>/requirements/scripts/requirements_trace.py <work_item_dir> --action master_validate --stage plan_present`
+   - `python3 <skills_root>/validate/scripts/validate_work_item.py <work_item_dir> --check plan`

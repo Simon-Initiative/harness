@@ -33,10 +33,11 @@ Always load before writing:
 4. Use `assets/templates/fdd_template.md` as the section structure.
 5. Apply the reference files as hard guidance for boundaries, interfaces, risks, and verification.
 6. Use `harness.yml` to determine whether feature flags, telemetry, performance requirements, code review, and issue tracking should appear by default.
-7. Run:
-   - `python3 ../requirements/scripts/requirements_trace.py <work_item_dir> --action verify_fdd`
-   - `python3 ../requirements/scripts/requirements_trace.py <work_item_dir> --action master_validate --stage fdd_only`
-   - `python3 ../validate/scripts/validate_work_item.py <work_item_dir> --check fdd`
+7. Resolve `<skills_root>` as the directory that contains the installed harness skills (`architect/`, `requirements/`, `validate/`, etc.). Do not resolve script paths relative to the repository or current working directory.
+8. Run:
+   - `python3 <skills_root>/requirements/scripts/requirements_trace.py <work_item_dir> --action verify_fdd`
+   - `python3 <skills_root>/requirements/scripts/requirements_trace.py <work_item_dir> --action master_validate --stage fdd_only`
+   - `python3 <skills_root>/validate/scripts/validate_work_item.py <work_item_dir> --check fdd`
 
 ## Output Contract
 - Update `<work_item_dir>/fdd.md`.

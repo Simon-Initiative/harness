@@ -32,10 +32,11 @@ Always load before coding:
 1. Resolve the work item directory.
 2. Read `prd.md`, `fdd.md`, `plan.md`, and relevant `design/*.md` files.
 3. If a phase selector is provided, implement only that phase.
-4. Run `python3 ../validate/scripts/validate_work_item.py <work_item_dir> --check all` before coding.
-5. Implement only the approved scope and keep a running execution record using the template.
-6. Run repository-local verification and test commands from `docs/TOOLING.md` and `docs/TESTING.md`.
-7. If code review is enabled in `harness.yml`, run at least one `$harness-review` round after tests pass.
-8. Sync work-item docs when implementation diverges.
-9. Run `python3 ../validate/scripts/validate_work_item.py <work_item_dir> --check all` after implementation.
-10. Final-phase only, run the requirements verification commands.
+4. Resolve `<skills_root>` as the directory that contains the installed harness skills (`develop/`, `validate/`, etc.). Do not resolve script paths relative to the repository or current working directory.
+5. Run `python3 <skills_root>/validate/scripts/validate_work_item.py <work_item_dir> --check all` before coding.
+6. Implement only the approved scope and keep a running execution record using the template.
+7. Run repository-local verification and test commands from `docs/TOOLING.md` and `docs/TESTING.md`.
+8. If code review is enabled in `harness.yml`, run at least one `$harness-review` round after tests pass.
+9. Sync work-item docs when implementation diverges.
+10. Run `python3 <skills_root>/validate/scripts/validate_work_item.py <work_item_dir> --check all` after implementation.
+11. Final-phase only, run the requirements verification commands.

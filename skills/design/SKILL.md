@@ -29,4 +29,5 @@ Always load before writing:
 3. Use `assets/templates/design_slice_template.md` as the structure.
 4. Map the slice back to the work item requirements and implementation plan.
 5. Use repository-local testing and operations docs plus `harness.yml` to decide which cross-cutting concerns need to be called out.
-6. Run `python3 ../validate/scripts/validate_work_item.py <work_item_dir> --check design --file <work_item_dir>/design/<slice_slug>.md`.
+6. Resolve `<skills_root>` as the directory that contains the installed harness skills (`design/`, `validate/`, etc.). Do not resolve script paths relative to the repository or current working directory.
+7. Run `python3 <skills_root>/validate/scripts/validate_work_item.py <work_item_dir> --check design --file <work_item_dir>/design/<slice_slug>.md`.
