@@ -17,7 +17,8 @@ when_not_to_use:
 1. Inspect the changed files and identify behavior-impacting risks first.
 2. Read `harness.yml`.
 3. If code review is disabled, stop and report that no repository review gate is configured.
-4. Read `docs/CODEREVIEW.md` and every repository-local review guide it points to and follow and implement a code review as prescribed.
+4. Read `docs/CODEREVIEW.md` and every repository-local review guide it points to and follow and implement a code review as prescribed, delegating
+actual review work to the `reviewer` subagent as outlined in `docs/CODEREVIEW.md`.
 5. Return findings in severity order.
 
 ## Output Contract
