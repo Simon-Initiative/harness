@@ -47,6 +47,16 @@ Expected child artifacts:
 - `<slug>/requirements.yml`
 - `<slug>/plan.md`
 
+## Slice Dependency Graph
+
+```mermaid
+flowchart TD
+  FIRST["First Slice"]
+  SECOND["Second Slice"]
+
+  FIRST --> SECOND
+```
+
 ## Cross-Cutting Concerns
 
 - Migration/cutover

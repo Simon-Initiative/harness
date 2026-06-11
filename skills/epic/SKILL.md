@@ -40,8 +40,9 @@ If repo-level guidance exists, skim only the relevant files needed for documenta
 5. Write or update `<epic_dir>/plan.md` as a parent roadmap, not an implementation plan.
 6. Sequence feature slices by dependency and risk.
 7. For each feature slice, describe scope, exclusions, ordering rationale, and expected child artifacts.
-8. Call out cross-cutting concerns, migration/cutover, observability, testing posture, and open questions.
-9. Do not create child PRDs/FDDs/requirements/plans unless the user explicitly asks.
+8. Include a slice dependency graph when there is more than one non-linear dependency or when the graph would clarify parallelizable versus serial work.
+9. Call out cross-cutting concerns, migration/cutover, observability, testing posture, and open questions.
+10. Do not create child PRDs/FDDs/requirements/plans unless the user explicitly asks.
 
 ## Output Rules
 
@@ -49,6 +50,7 @@ If repo-level guidance exists, skim only the relevant files needed for documenta
 - Keep implementation tasks high-level. Do not write detailed phase tasks, test commands, or line-item coding checklists for the whole epic.
 - Preserve clear slice boundaries so follow-up skills can operate on one child feature at a time.
 - Make dependencies explicit: "this comes before X because..."
+- Add a Mermaid dependency graph for multi-slice epics when it improves readability; keep node labels concise and aligned with the feature slice names.
 - Include likely child directories when helpful, but avoid creating empty directories unless requested.
 - If updating an existing roadmap, preserve useful existing structure and revise only what the new source requires.
 

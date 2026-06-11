@@ -11,6 +11,7 @@ Use this structure unless the repository has a stronger local convention:
 - Current Foundation
 - Sequencing Principles
 - Feature Sequence
+- Slice Dependency Graph, when useful for multi-slice dependency clarity
 - Cross-Cutting Concerns
 - Suggested Child Artifacts
 - Open Questions
@@ -46,6 +47,7 @@ An epic roadmap says:
 - why their order matters
 - what each slice should produce
 - what risks and unknowns affect the sequence
+- how slices depend on each other, optionally summarized in a concise Mermaid graph
 
 An implementation plan says:
 
