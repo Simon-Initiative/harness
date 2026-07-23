@@ -1,75 +1,115 @@
-# <Epic Name> Roadmap
+# <Epic Name> - High-Level Development Plan
 
-## Purpose
+Last updated: <YYYY-MM-DD>
 
-Describe what this roadmap coordinates and make clear that this is not a phase-by-phase implementation plan.
+Context references:
+- Epic overview: `<path>`
+- Epic informal source: `<path>`
+- Epic PRD/EDD/FDD, when present: `<path>`
+- Feature tracks:
+  - `<feature_slug>/informal.md`
+  - `<feature_slug>/prd.md`
+  - `<feature_slug>/fdd.md`
+  - `<feature_slug>/plan.md`
+- Lane-structured reference format, when useful: `<path>`
 
-## Core Direction
+## Why We Are Organizing By Lanes
 
-Summarize the epic's product and technical direction in a few bullets.
+Lanes group related features so implementation can proceed in coherent streams with clearer ownership boundaries, lower context switching, and explicit dependency sequencing. A lane is usually the work boundary for one engineer or tightly coordinated owner, with features inside the lane worked serially unless noted otherwise.
 
-## Current Foundation
+## Lane Summary
 
-Describe what already exists and what should be treated as a dependency or constraint.
+- Lane 1: <Lane Name>
+  - <One-sentence summary of what this lane delivers.>
+- Lane 2: <Lane Name>
+  - <One-sentence summary of what this lane delivers.>
 
-## Sequencing Principles
+## Clarifications and Assumptions
 
-- Principle 1
-- Principle 2
-- Principle 3
+- This plan is intentionally high-level and lane-oriented.
+- Source scope comes from `<source path>`.
+- Serial order inside each lane is dependency-first, then risk reduction, then workflow completion.
+- Lane dependencies are lane-level by default; ticket-level constraints are called out when needed.
 
-## Feature Sequence
+## Lane 1: <Lane Name>
 
-### 1. <Feature Slice Name>
+### Scope
 
-Likely directory: `<slug>/`
+- `<Ticket or Feature>` <Title>
+- `<Ticket or Feature>` <Title>
+- Feature docs:
+  - `<feature_slug>/informal.md`
+  - `<feature_slug>/prd.md`
+  - `<feature_slug>/fdd.md`
 
-Deliver:
+### Proposed Serial Order
 
-- ...
+1. `<Ticket or Feature>` <Title>
+2. `<Ticket or Feature>` <Title>
 
-Defer:
+### Dependency Notes
 
-- ...
+- <Why items in this lane are ordered this way.>
+- <Important ticket-level or feature-level constraints.>
 
-Dependencies:
+### Cross-Lane Dependencies
 
-- ...
+- No inbound lane dependency; this lane can start immediately.
+- Lane <N> depends on completion of this lane.
 
-Why this comes here:
+## Lane 2: <Lane Name>
 
-- ...
+### Scope
 
-Expected child artifacts:
+- `<Ticket or Feature>` <Title>
 
-- `<slug>/prd.md`
-- `<slug>/fdd.md`
-- `<slug>/requirements.yml`
-- `<slug>/plan.md`
+### Proposed Serial Order
 
-## Slice Dependency Graph
+1. `<Ticket or Feature>` <Title>
+
+### Dependency Notes
+
+- <Why items in this lane are ordered this way.>
+
+### Cross-Lane Dependencies
+
+- Hard dependency on completion of Lane 1.
+
+## Suggested Global Execution Shape
+
+1. Start Lane 1 (<Lane Name>) first.
+2. After Lane 1 completes, start Lane 2 (<Lane Name>).
+3. Run epic-wide integration and regression hardening after all functional lanes complete.
+
+## Lane Dependency Flow (Mermaid)
 
 ```mermaid
 flowchart TD
-  FIRST["First Slice"]
-  SECOND["Second Slice"]
+  L1["Lane 1: <Lane Name>"]
+  L2["Lane 2: <Lane Name>"]
+  INT["Epic-wide Integration and Regression Hardening"]
 
-  FIRST --> SECOND
+  L1 --> L2
+  L2 --> INT
+
+  classDef immediate fill:#dff5df,stroke:#2e7d32,stroke-width:1px,color:#1b5e20;
+  class L1 immediate;
 ```
 
-## Cross-Cutting Concerns
-
-- Migration/cutover
-- Data ownership and persistence
-- Security/privacy
-- Performance/reliability
-- Observability/auditability
-- Testing and verification
+Note: Light green lane nodes indicate lanes with no inbound dependencies and can be started immediately.
 
 ## Open Questions
 
 - ...
 
-## Recommended Next Slice
+## Decision Log
 
-Name the next child slice to document and the appropriate follow-up Harness skill.
+### <YYYY-MM-DD> - <Decision>
+- Change: <What changed in the lane plan.>
+- Reason: <Why.>
+- Evidence: `<source path>`
+- Impact: <Effect on sequencing, ownership boundaries, or follow-up work.>
+
+## Recommended Next Work
+
+Name the next lane or feature to document and the appropriate follow-up Harness skill.
