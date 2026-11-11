@@ -1,41 +1,14 @@
 ---
 name: harness-fixbug
-description: Execute a regression-safe, TDD-first bug-fix workflow using the repository’s configured issue intake, testing, and review rules.
-examples:
-  - "$harness-fixbug ISSUE-123"
-  - "Fix this regression using the repository bug workflow ($harness-fixbug)"
-when_to_use:
-  - "A minimal safe bug fix is needed."
-  - "The repository expects regression-first bug work."
-when_not_to_use:
-  - "The work is a net-new feature workflow."
-  - "The user asks for an exploratory prototype."
+description: Investigate and fix a defect with regression protection and final review.
 ---
 
-## Required Resources
-Always load before working:
+Start with the request, applicable repository instructions (including `AGENTS.md`), and the artifact being acted on. Investigate affected code progressively; read architecture, domain, operations, security, testing, tooling, or issue guidance when relevant to the next decision. Read `harness.yml` when configured behavior matters. Reuse unchanged context; reread after changes, missing handoff context, or uncertainty. No context-loading log is required.
 
-- `references/persona.md`
-- `references/approach.md`
-- `references/considerations.md`
-- `references/output_requirements.md`
-- `ARCHITECTURE.md`
-- `harness.yml`
-- `docs/STACK.md`
-- `docs/TOOLING.md`
-- `docs/TESTING.md`
-- `docs/PRODUCT_SENSE.md`
-- `docs/FRONTEND.md`
-- `docs/BACKEND.md`
-- `docs/CODEREVIEW.md` when review is enabled
-- `docs/ISSUE_TRACKING.md` when issue tracking is enabled
+Establish expected versus actual behavior and investigate the root cause. Prefer demonstrating a failing regression test before the minimal fix. If reproduction or automation is impractical, record alternative evidence and environmental limits; never invent a failed test or treat unavailable checks as passing.
 
-## Workflow
-1. Resolve the bug report from the configured issue intake when available.
-2. Restate expected vs actual behavior.
-3. Reproduce the bug locally when possible.
-4. Add or update a failing regression test first.
-5. Implement the smallest safe fix that makes the test pass.
-6. Run required verification and test commands.
-7. If code review is enabled, run `$harness-review`.
-8. Update docs only when the bug fix changes a documented behavior contract.
+Implement the smallest safe fix, add practical regression protection, and run affected verification. Avoid unrelated refactors; update docs only for changed behavior contracts.
+
+After the complete deliverable passes relevant verification, run `$harness-review` once unless automatic review is explicitly disabled in repository policy. A user-requested review still runs. Resolve substantive findings and rerun affected checks; broader re-review is needed only if the fixes justify it.
+
+Report root cause, fix, regression evidence, check results and limits.

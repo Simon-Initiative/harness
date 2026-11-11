@@ -1,50 +1,19 @@
-# <Work Item Name> - Delivery Plan
-
-Scope and reference artifacts:
-- PRD: `<work_item_dir>/prd.md`
-- FDD: `<work_item_dir>/fdd.md`
+# Implementation plan
 
 ## Scope
-<delivery scope>
 
-## Clarifications & Default Assumptions
-- <assumption>
+Link authoritative inputs and identify the deliverable base for review.
 
-## Phase 1: <Name>
-- Goal: <goal>
-- Tasks:
-  - [ ] <task>
-- Testing Tasks:
-  - [ ] <test task>
-  - Command(s): `<command>`
-- Definition of Done:
-  - <completion condition>
-- Gate:
-  - <gate condition>
-- Dependencies:
-  - <dependency or none>
-- Parallelizable Work:
-  - <safe concurrent work>
+## Tasks
 
-## Phase 2: <Name>
-- Goal: <goal>
-- Tasks:
-  - [ ] <task>
-- Testing Tasks:
-  - [ ] <test task>
-  - Command(s): `<command>`
-- Definition of Done:
-  - <completion condition>
-- Gate:
-  - <gate condition>
-- Dependencies:
-  - <dependency>
-- Parallelizable Work:
-  - <safe concurrent work>
+- [ ] Implement the goal.
+- [ ] Run relevant verification.
 
-## Parallelization Notes
-- <notes>
+Split into dependency-ordered phases only when useful; give each its tasks and verification.
 
-## Phase Gate Summary
-- Gate A: <condition>
-- Gate B: <condition>
+## Final completion
+
+- [ ] Integration checks and requirements coverage assessed.
+- [ ] Complete deliverable reviewed independently after all phases (unless automatic review disabled).
+
+Record concise verification results, material deviations and remaining blockers here.

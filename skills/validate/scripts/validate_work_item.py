@@ -1,68 +1,43 @@
 #!/usr/bin/env python3
-"""Validate work item markdown artifacts in docs/exec-plans/current/."""
-
-from __future__ import annotations
-
+"""Check selected nonempty artifacts and canonical structured requirements."""
 from pathlib import Path
 import argparse
-import re
 import sys
-
-REQUIRED = {
-    'prd': ['prd.md'],
-    'fdd': ['fdd.md'],
-    'plan': ['plan.md'],
-    'all': ['prd.md', 'fdd.md', 'plan.md'],
-}
-
-HEADER_PATTERN = re.compile(r'^#', re.M)
-TODO_PATTERN = re.compile(r'\bTODO\b')
+sys.path.insert(0, str(Path(__file__).resolve().parents[2] / 'requirements/scripts'))
+from requirements_trace import load, validate
+import yaml
 
 
-def check_file(path: Path) -> list[str]:
-    errors: list[str] = []
-    if not path.exists():
-        return [f'missing required file: {path.name}']
-    text = path.read_text()
-    if not HEADER_PATTERN.search(text):
-        errors.append(f'{path.name} has no markdown headings')
-    if TODO_PATTERN.search(text):
-        errors.append(f'{path.name} contains unresolved TODO markers')
-    return errors
-
-
-def main() -> int:
-    parser = argparse.ArgumentParser()
-    parser.add_argument('work_item_dir', help='Work item directory, e.g. docs/exec-plans/current/my-work-item')
-    parser.add_argument('--check', default='all', choices=['all', 'prd', 'fdd', 'plan', 'design'])
-    parser.add_argument('--file')
-    args = parser.parse_args()
-
-    work_item_dir = Path(args.work_item_dir)
-    if not work_item_dir.exists():
-        print(f'ERROR: work item directory not found: {work_item_dir}')
-        return 1
-
-    errors: list[str] = []
-    if args.check == 'design':
-        if not args.file:
-            print('ERROR: --file is required for --check design')
-            return 1
-        errors.extend(check_file(Path(args.file)))
-    else:
-        for rel in REQUIRED[args.check]:
-            errors.extend(check_file(work_item_dir / rel))
-
-    if args.check in {'all', 'prd'} and not (work_item_dir / 'requirements.yml').exists():
-        errors.append('requirements.yml is missing')
-
-    if errors:
-        for error in errors:
-            print(f'ERROR: {error}')
-        return 1
-    print('Work item validation passed.')
+def main():
+    p = argparse.ArgumentParser(description=__doc__)
+    p.add_argument('work_item_dir', type=Path)
+    p.add_argument('--workflow', choices=['feature', 'work', 'bug', 'prototype', 'epic'], default='work')
+    p.add_argument('--check', choices=['prd', 'fdd', 'plan', 'design', 'requirements'])
+    p.add_argument('--file')
+    p.add_argument('--repo-root', type=Path)
+    a = p.parse_args()
+    try:
+        root = a.work_item_dir.resolve()
+        if not root.is_dir(): raise ValueError('work item directory does not exist')
+        if a.file and a.check != 'design': raise ValueError('--file is only supported for design')
+        names = []
+        if a.check == 'design':
+            if not a.file: raise ValueError('--file is required for design (relative to work item)')
+            names = [a.file]
+        elif a.check and a.check != 'requirements': names = [a.check + '.md']
+        elif not a.check and a.workflow in ('feature', 'epic'): names = ['plan.md']
+        for name in names:
+            path = (root / name).resolve()
+            if not path.is_relative_to(root) or not path.is_file() or not path.read_text().strip():
+                raise ValueError(f'missing, empty or out-of-scope artifact: {name}')
+        req = root / 'requirements.yml'
+        if req.exists() or a.check == 'requirements' or (not a.check and a.workflow == 'feature'):
+            validate(load(req), root, a.repo_root)
+    except (OSError, ValueError, yaml.YAMLError) as exc:
+        p.exit(1, f'ERROR: {exc}\n')
+    print('Selected artifact presence and requirements structure valid; no execution or semantic coverage claim.')
     return 0
 
 
 if __name__ == '__main__':
-    sys.exit(main())
+    raise SystemExit(main())

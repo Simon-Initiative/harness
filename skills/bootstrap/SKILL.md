@@ -1,59 +1,16 @@
 ---
 name: harness-bootstrap
-description: Seed a target repository with the required harness contract files and directory structure, and optionally draft initial repository-specific content when enough context is available.
-examples:
-  - "$harness-bootstrap /path/to/target-repo"
-  - "Seed this repository with the harness contract ($harness-bootstrap)"
-  - "Bootstrap this Phoenix repository for a retirement-planning web app with a future React frontend ($harness-bootstrap)"
-when_to_use:
-  - "A repository needs the required harness artifacts created for the first time."
-  - "A repository needs the standard contract structure restored."
-  - "A repository needs the harness contract plus an initial pass at repository-specific docs."
-when_not_to_use:
-  - "The repository already has a valid harness contract and only needs content updates."
+description: Add a compact repository routing entry point while preserving existing documentation.
 ---
 
-## Purpose
+Start with the request, applicable repository instructions (including `AGENTS.md`), and the artifact being acted on. Investigate affected code progressively; read architecture, domain, operations, security, testing, tooling, or issue guidance when relevant to the next decision. Read `harness.yml` when configured behavior matters. Reuse unchanged context; reread after changes, missing handoff context, or uncertainty. No context-loading log is required.
 
-Create the required harness contract files and directories in a target repository.
+Inspect the target repository and existing instructions, architecture and command documentation. Run `python3 <this-skill>/seed_harness_contract.py <target-repo>` using the invoked skill's actual location. The script creates only a missing `AGENTS.md` and preserves every existing file.
 
-When the invocation includes enough context, also draft an initial pass of repository-specific content into the seeded docs.
+Adapt the new routing entry point to substantive existing architecture, commands/testing, and applicable policy; add domain documents only when the repository needs them. Do not overwrite substantive instructions, seed placeholder integrations, or infer operational readiness from path existence. Existing legacy contracts remain usable and are not deleted.
 
-## Workflow
+Preserve application-defined review orchestration. Point to an existing `docs/CODEREVIEW.md` or the review entry point configured in `capabilities.code_review.details_file`, including its reviewer/checklist selection rules. These reviewers run within the single final review stage. Do not create an empty review document or replace specialist reviewers with the harness's general reviewer.
 
-1. Resolve the target repository root.
-2. Run `python3 ./seed_harness_contract.py <target_repo>`.
-3. Inspect available context signals:
-   - user-provided description of the intended product, stack, architecture, or workflow
-   - existing repository files such as `AGENTS.md`, `README*`, `mix.exs`, `package.json`, `pyproject.toml`, `Cargo.toml`, `go.mod`, `Dockerfile*`, CI files, and framework entrypoints
-   - existing docs that already describe architecture, testing, operations, frontend, or tooling
-4. Decide whether there is enough context to populate content:
-   - If there is no meaningful repository or product context, stop after seeding and validation.
-   - If there is meaningful context, draft initial content for the seeded harness files using that context.
-5. Content population rules:
-   - Never overwrite substantive existing repository files unless the user explicitly asks.
-   - Prefer filling files that are empty, placeholder-only, or clearly harness-seeded boilerplate.
-   - Reuse existing repository wording and conventions when they are already documented.
-   - Use high-confidence facts from the repository for stack, tooling, and architecture sections.
-   - Use user-provided product description for product goals, likely system shape, and initial planning context.
-   - Mark inferred content as assumptions when it is not directly grounded in repository evidence.
-6. Prioritize initial population of:
-   - `AGENTS.md`
-   - `ARCHITECTURE.md`
-   - `harness.yml`
-   - `docs/STACK.md`
-   - `docs/TOOLING.md`
-   - `docs/TESTING.md`
-   - `docs/OPERATIONS.md`
-   - `docs/FRONTEND.md`
-   - `docs/PRODUCT_SENSE.md`
-7. Run `python3 ./validate_harness_contract.py <target_repo>`.
-8. If validation fails, fix the seeded files immediately.
+Optional `harness.yml` retains version 1 capability policy: disabled adoption disables automatic use; enabled/include means default consideration when relevant; enabled/exclude means opt-in. Absent code-review policy defaults to one final review. Explicit review requests always run. Other absent capabilities imply no integration. Details paths are optional and read when relevant.
 
-## Output Contract
-
-- Report the target repository path.
-- Report whether the seed run created new files or reused existing files.
-- Report whether content population was skipped or performed.
-- When content population was performed, report which files were materially drafted from repository or user-provided context.
-- Report the validation result.
+Run `python3 <this-skill>/validate_harness_contract.py <target-repo>`. Report created/reused paths, substantive routing updates, validation results and missing knowledge. Validation checks structure, not readiness.

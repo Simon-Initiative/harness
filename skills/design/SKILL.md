@@ -1,33 +1,8 @@
 ---
 name: harness-design
-description: Produce a slice-level detailed design doc at <work_item_dir>/design/<slice_slug>.md by mapping slice responsibilities, interfaces, edge cases, and tests to the work item requirements.
-examples:
-  - "$harness-design docs/exec-plans/current/gradebook-overrides slice=late-penalty-ui"
-  - "$harness-design docs/exec-plans/current/platform-modernization/gradebook-overrides slice=late-penalty-ui"
-when_to_use:
-  - "PRD/FDD exist and one implementation slice needs deeper design."
-  - "A planned phase needs concrete signatures and edge-case handling before coding."
-when_not_to_use:
-  - "Task is feature-level architecture (use $harness-architect)."
-  - "Task is immediate implementation (use $harness-develop)."
+description: Resolve a difficult technical slice with a focused optional design.
 ---
 
-## Required Resources
-Always load before writing:
+Start with the request, applicable repository instructions (including `AGENTS.md`), and the artifact being acted on. Investigate affected code progressively; read architecture, domain, operations, security, testing, tooling, or issue guidance when relevant to the next decision. Read `harness.yml` when configured behavior matters. Reuse unchanged context; reread after changes, missing handoff context, or uncertainty. No context-loading log is required.
 
-- `references/design_checklist.md`
-- `references/definition_of_done.md`
-- `references/validation.md`
-- `assets/templates/design_slice_template.md`
-- `<work_item_dir>/prd.md`
-- `<work_item_dir>/fdd.md`
-- `<work_item_dir>/plan.md` when present
-
-## Workflow
-1. Resolve the work item directory.
-2. Create or update `<work_item_dir>/design/<slice_slug>.md`.
-3. Use `assets/templates/design_slice_template.md` as the structure.
-4. Map the slice back to the work item requirements and implementation plan.
-5. Use repository-local testing and operations docs plus `harness.yml` to decide which cross-cutting concerns need to be called out.
-6. Resolve `<skills_root>` as the directory that contains the installed harness skills (`design/`, `validate/`, etc.). Do not resolve script paths relative to the repository or current working directory.
-7. Run `python3 <skills_root>/validate/scripts/validate_work_item.py <work_item_dir> --check design --file <work_item_dir>/design/<slice_slug>.md`.
+Identify the specific uncertainty, inspect relevant code and authoritative requirements, and write `design/<slice>.md` describing the decision, affected interfaces, failure cases and verification that resolve it. Use the optional [template](assets/templates/design_slice_template.md). Do not duplicate the full feature scope or require other documents to exist. Finish with the decision, supporting evidence, and any remaining uncertainty.

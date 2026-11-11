@@ -1,250 +1,167 @@
 # Harness Engineering Skills
 
-This repository is a reusable engineering harness for agent-assisted software development. It is meant to be paired with tools like Claude Code or Codex CLI so the same disciplined workflow can be applied across arbitrary applications, regardless of language, framework, or product domain.
+Reusable engineering skills for capable agents in Codex and Claude Code. Start with the
+request, applicable repository instructions, the invoked skill and the artifact at hand.
+Read code and domain guidance progressively as decisions require it. Reuse unchanged
+context. Repository-specific rules and explicit user scope remain authoritative.
 
-The key idea is simple: the reusable skills live here, but the durable project context lives in the target repository. The harness depends on convention. Agents work reliably only when the target repository exposes a stable, versioned set of required files and directories that define architecture, product intent, tooling, testing, operations, plans, and review standards.
+## Default workflows
 
-Do not install this repository into each application repository. Instead, install these skills into your user-level skills directory, then run the bootstrap skill from inside the target repository you want to prepare.
-
-## How It Works
-
-The operating model is:
-
-1. Keep this repository as the source of truth for the reusable skills.
-2. Install those skills into your user-level skills directory.
-3. Open the target repository you want to work on.
-4. Invoke `$harness-bootstrap` inside that target repository.
-5. Let the bootstrap skill create the required harness contract files and directories.
-6. Use the other harness skills against that seeded target repository.
-
-Once bootstrapped, the target repository becomes the system of record. The agent should read repository-local files such as `AGENTS.md`, `ARCHITECTURE.md`, `harness.yml`, and the `docs/` contract before doing substantive work.
-
-## Getting Started
-
-### 1. Install the skills globally
-
-Use the installer in this repository instead of copying skills manually:
-
-```bash
-./bin/harness-install
-```
-
-The installer:
-
-- clones this repository to `~/.local/share/harness`
-- defaults to the `stable` channel
-- reads the repo version from `version.json`
-- installs into `~/.agents/skills` when that Codex target exists
-- installs into `~/.claude/skills` when that Claude Code target exists
-- installs into both when both exist
-- creates both target roots when neither exists yet
-- creates a collision-safe namespace directory such as `~/.agents/skills/harness` or `~/.agents/skills/harness_1`
-- places symlinks inside that namespace using the actual skill names from each `SKILL.md`, such as `harness-analyze` and `harness-architect`
-
-If you want the default branch instead of the newest release tag, pass `latest`:
-
-```bash
-./bin/harness-install latest
-```
-
-For curl-based bootstrap usage, the repository also includes a small [install.sh](/Users/darren/dev/harness/install.sh) entrypoint that clones the repo and then delegates to the local installer:
-
-```bash
-curl -fsSL https://raw.githubusercontent.com/Simon-Initiative/harness/master/install.sh | bash
-```
-
-To install the default branch instead of the newest release tag:
-
-```bash
-curl -fsSL https://raw.githubusercontent.com/Simon-Initiative/harness/master/install.sh | bash -s -- latest
-```
-
-### 2. Open your target repository
-
-Change into the repository where you want the harness contract to exist. This can be a new or existing project in any stack.
-
-### 3. Run the bootstrap skill
-
-Invoke the bootstrap skill from inside the target repository:
-
-```text
-$harness-bootstrap
-```
-
-The bootstrap workflow uses the seed and validation scripts in this repository to:
-
-- create the required harness files and directories
-- preserve existing substantive files unless you explicitly choose to overwrite them
-- optionally draft initial repository-specific content when the target repo already provides enough context
-- validate the resulting contract
-
-## Required Target Repository Layout
-
-The harness expects the target repository to expose this baseline structure:
-
-```text
-AGENTS.md
-ARCHITECTURE.md
-harness.yml
-docs/
-├── BACKEND.md
-├── CODEREVIEW.md
-├── DESIGN.md
-├── FRONTEND.md
-├── ISSUE_TRACKING.md
-├── OPERATIONS.md
-├── PLANS.md
-├── PRODUCT_SENSE.md
-├── QUALITY_SCORE.md
-├── RELIABILITY.md
-├── SECURITY.md
-├── STACK.md
-├── TESTING.md
-├── TOOLING.md
-├── design-docs/
-│   ├── core-beliefs.md
-│   └── index.md
-├── exec-plans/
-│   ├── archive/
-│   ├── current/
-│   └── tech-debt-tracker.md
-├── generated/
-│   └── db-schema.md
-├── product-specs/
-│   └── index.md
-└── references/
-```
-
-This is not just an example layout. It is the contract the harness expects to find in the target repository.
-
-## What Goes Where
-
-### Core files
-
-| Path | Purpose |
+| Work | Path |
 | --- | --- |
-| `AGENTS.md` | Short routing document for the agent. Point to the real repository-local sources of truth instead of duplicating them. |
-| `ARCHITECTURE.md` | High-level system map, major boundaries, integration seams, and architectural constraints. |
-| `harness.yml` | Machine-readable capability policy describing which concerns are enabled and where their detailed guidance lives. |
+| Bounded enhancement/refactor | `work` → implement and verify → final review |
+| Bug | `fixbug` → reproduce/protect → fix and verify → final review |
+| Substantial feature | `analyze` → `architect` when needed → `plan` → `develop` all remaining phases → final review |
+| Difficult slice | Optional `design` to resolve a specific uncertainty |
+| Multi-feature initiative | Optional `epic` for ownership, dependencies and concurrency |
+| Experiment | `prototype` → smallest useful experiment/smoke check → report evidence and unknowns |
 
-## Example `harness.yml`
+Public skill names remain `$harness-analyze`, `$harness-architect`, `$harness-plan`,
+`$harness-develop`, `$harness-work`, `$harness-fixbug`, `$harness-review`,
+`$harness-prototype`, `$harness-design`, `$harness-epic`, `$harness-requirements`,
+`$harness-update_docs`, `$harness-validate`, and `$harness-bootstrap`.
 
-The `harness.yml` file is the machine-readable switchboard for the harness. Today, the harness actively uses it in two ways:
+An analysis/design/planning-only request stops at that scope. Implementation authorization
+permits completing the plan without renewed approval at routine phase boundaries.
+`develop phase=2` honors that selection; a non-final selected phase reports final review
+pending. Explicitly separate PR deliverables each receive final review.
 
-- the bootstrap validator checks that the expected capability schema exists and that each capability points at a real repository-local details file
-- the planning and execution skills read the capability entries to decide which cross-cutting concerns should be treated as in-scope by default
+Review runs once after all implementation phases and relevant checks pass. Review the
+whole deliverable against its base, including committed/uncommitted work, in a fresh
+reviewer context where supported. Resolve substantive findings and verify fixes. If
+independent execution is unavailable, label the fallback self-review honestly.
+[Reviewer configuration](agents/reviewer.toml) preserves read-only isolation without
+selecting a model; configure model preferences through the runtime or repository.
 
-To keep the README aligned with the code, the example below only shows fields that are currently part of that active contract.
+One final review is a stage that can include multiple application-defined reviewers.
+At that stage, `harness-review` reads `capabilities.code_review.details_file` from
+`harness.yml`, or falls back to an existing `docs/CODEREVIEW.md`, and follows applicable
+`AGENTS.md` rules. That entry point controls reviewer selection and delegation. For
+example, a repository can require separate security and performance subagents for every
+deliverable, with backend, frontend or requirements reviewers selected by the changed
+scope. Each selected reviewer gets its own guide and the complete deliverable base;
+the coordinator waits for all reviewers and consolidates findings. Repository-specific
+reviewers are not replaced by the generic harness reviewer. Bootstrap preserves and
+links existing review guidance without requiring a placeholder review document.
 
-Example:
+## Artifacts and context
+
+Small work can use a ticket and a short approach in chat. Substantial features normally
+use a compact `prd.md`, canonical nested `requirements.yml`, optional `fdd.md`, and
+checkbox `plan.md`, usually under `docs/exec-plans/current/<work-item>/`. Existing
+specifications can substitute; do not manufacture missing PRDs or designs. Templates
+are suggestions, not formatting gates. Optional slice designs resolve particular
+uncertainties; epic plans coordinate feature ownership and dependencies.
+
+Keep progress, blockers, material deviations and a concise final verification summary in
+the plan or PR description. No phase execution record or duplicate decision logs are
+required. Update requirements/product scope for acceptance changes, design for contract
+changes, and plan for task order/progress. Never weaken requirements silently.
+
+## Install
+
+```bash
+./bin/harness-install          # stable: newest release tag
+./bin/harness-install latest   # default branch
+./bin/harness-status
+./bin/harness-update
+```
+
+The installer maintains a checkout at `~/.local/share/harness`, selecting existing
+`~/.agents/skills` (Codex) and `~/.claude/skills` (Claude Code) targets, or creating both
+if neither exists. It installs symlinks inside a collision-safe `harness`/`harness_1`
+namespace using metadata names, e.g. `harness-validate`, not source folder `validate`.
+[install.sh](install.sh) is the clone-and-delegate entry point. Version metadata remains
+in `version.json`; this change does not publish a release.
+
+Use an interpreter with Python 3.10+ and PyYAML (`python -m pip install PyYAML` in your
+chosen virtual environment). Scripts are invoked from the actual skill location. They
+resolve symlinks before locating internal helpers; do not infer sibling paths from
+source folder names in the installed namespace. Keep the complete source checkout;
+copying individual skill directories is unsupported for helpers that share code.
+
+## Compact bootstrap and policy
+
+`$harness-bootstrap` creates only a missing `AGENTS.md` routing entry point. It preserves
+all existing documentation and points to substantive architecture, commands/testing,
+and applicable policy as discovered. Add domain documents only when needed. Empty
+repositories still require investigation and useful routing; path existence is not
+operational readiness. The seed script has no overwrite/force option.
+
+`harness.yml` is optional. Version 1 capability entries remain compatible:
 
 ```yaml
 version: 1
-
 capabilities:
-  feature_flags:
-    adoption: disabled
-    default: exclude
-    details_file: docs/OPERATIONS.md
-  telemetry:
-    adoption: enabled
-    default: include
-    details_file: docs/OPERATIONS.md
-  performance_requirements:
-    adoption: enabled
-    default: exclude
-    details_file: docs/OPERATIONS.md
   code_review:
     adoption: enabled
     default: include
-    details_file: docs/CODEREVIEW.md
-  issue_tracking:
-    adoption: enabled
-    default: include
-    details_file: docs/ISSUE_TRACKING.md
+    # details_file: docs/CODEREVIEW.md  # optional, must exist if supplied
 ```
 
-In practice, this file answers questions like:
+For retained capabilities (`feature_flags`, `telemetry`, `performance_requirements`,
+`code_review`, `issue_tracking`), disabled adoption disables automatic use;
+enabled/include means consider by default when relevant; enabled/exclude is opt-in.
+This is agent policy, not a script-driven orchestrator. Omitted review policy defaults
+to one final review; other omitted capabilities imply no integration. Explicitly
+requested review runs even with automatic review disabled. Legacy provider/link metadata
+is tolerated but not validated or consumed by the compact validator.
 
-- whether the agent should assume feature flags exist in this repository
-- whether telemetry should be considered part of the default implementation path
-- whether performance requirements should be called out by default
-- where the agent should look for the repository's code review rules
-- whether issue tracking is part of the expected workflow
+## Validation commands and guarantees
 
-The markdown files hold the narrative guidance. `harness.yml` gives the agent a compact policy layer it can inspect quickly and apply consistently.
+From the source checkout (substitute the installed skill's actual path as needed):
 
-### Repository standards
+```bash
+python skills/validate/scripts/validate_work_item.py WORK_ITEM --workflow feature
+python skills/validate/scripts/validate_work_item.py WORK_ITEM --workflow work
+python skills/validate/scripts/validate_work_item.py WORK_ITEM --check fdd
+python skills/requirements/scripts/requirements_trace.py WORK_ITEM --action capture --bulk-file payload.yml
+python skills/bootstrap/seed_harness_contract.py TARGET_REPO
+python skills/bootstrap/validate_harness_contract.py TARGET_REPO
+```
 
-| Path | Purpose |
-| --- | --- |
-| `docs/STACK.md` | Languages, frameworks, runtimes, storage, infrastructure basics, and major technical choices. |
-| `docs/TOOLING.md` | Canonical commands for build, lint, format, typecheck, test, and local development workflows. |
-| `docs/TESTING.md` | Test strategy, required gates, and any repository-specific testing conventions. |
-| `docs/OPERATIONS.md` | Observability, rollout, performance expectations, incidents, and runtime concerns. |
-| `docs/CODEREVIEW.md` | Review policy, required review lenses, and repository-specific review standards. |
-| `docs/ISSUE_TRACKING.md` | Ticket workflow, system of record, intake path, and how work is tracked. |
-| `docs/SECURITY.md` | Security requirements, data handling rules, auth boundaries, and review expectations. |
-| `docs/RELIABILITY.md` | Reliability expectations, fault tolerance concerns, and service health requirements. |
-| `docs/QUALITY_SCORE.md` | How quality is evaluated in this repo and what currently blocks higher confidence. |
+- `feature` requires a nonempty plan and valid requirements. `epic` requires a nonempty
+  plan. `work`, `bug`, and `prototype` need only an existing work directory. Any present
+  requirements file is validated. Selected `prd`, `fdd`, `plan`, or `design` checks require
+  only that artifact (plus any present requirements); `--check requirements` requires YAML.
+- Requirements validation checks the [canonical schema](skills/requirements/references/schema.md),
+  unique IDs, nested criteria and explicit evidence files. Use `--repo-root REPO` for
+  `repo:` evidence; `work:` paths resolve relative to the work item. Capture replaces
+  supplied requirements by stable ID, including their full criteria; omitted requirements
+  remain. Identical input is idempotent and errors leave existing content unchanged.
+- Bootstrap validation requires nonempty `AGENTS.md`; optional capability policy must be
+  structurally valid and any specified details paths must exist within the repository.
 
-### Product and implementation guidance
+These checks do not enforce headings, boilerplate, Markdown links/anchors, or forbidden
+words. They do not establish operational readiness, execution success or semantic
+coverage. Actual check results must be recorded honestly; agents and final reviewers
+assess whether evidence supports each criterion. Source-code AC tokens prove nothing.
 
-| Path | Purpose |
-| --- | --- |
-| `docs/PRODUCT_SENSE.md` | Product goals, target users, priorities, and decision-making guidance for tradeoffs. |
-| `docs/FRONTEND.md` | UI architecture, frontend boundaries, client-side conventions, and design implementation rules. |
-| `docs/BACKEND.md` | Service boundaries, API rules, domain logic placement, and backend implementation guidance. |
-| `docs/DESIGN.md` | Design principles, interaction expectations, and experience-level standards. |
-| `docs/PLANS.md` | How work items are structured, where active execution plans live, and planning expectations. |
+## Migration
 
-### Working directories
+Existing extra repository documents remain useful; nothing deletes them. Remove old
+mandatory-read and per-phase-review rules from repository-local instructions only when
+authorized; skills continue to honor those explicit rules. No policy rewrite is required
+for legacy version 1 configurations, but integrations should only be enabled when real.
 
-| Path | Purpose |
-| --- | --- |
-| `docs/exec-plans/current/` | Active work items, including PRDs, designs, plans, and proof artifacts for in-flight changes. |
-| `docs/exec-plans/archive/` | Completed or superseded work items that should remain available for historical context. |
-| `docs/exec-plans/tech-debt-tracker.md` | Explicit technical debt inventory and deferred engineering work. |
-| `docs/design-docs/` | Decision records, design history, and durable engineering beliefs. |
-| `docs/product-specs/` | Feature-level product specs and user-facing behavior definitions. |
-| `docs/generated/` | Generated reference artifacts such as schema inventories or other machine-produced facts. |
-| `docs/references/` | External framework, platform, design-system, or tool references that agents may need during implementation. Bootstrap ensures the directory exists but does not seed reference files into it. |
+Requirements keep nested criteria and stable IDs. Remove promotion/status metadata and
+convert meaningful old proofs to explicit evidence, following the short
+[schema migration notes](skills/requirements/references/schema.md). Top-level criteria
+need explicit assignment to owning requirements; unsupported formats fail with a diagnostic.
+Old promotion/verification commands are removed; use `--action validate` or the work-item
+validator, not both for the same input. `--check all` is replaced by `--workflow feature`;
+`validate_spec_pack.py` remains a deprecated wrapper for that workflow. Design `--file`
+is relative to the work item. Old phase records may remain historical but are not required.
 
-## Bootstrap Behavior
+## Checks for this repository
 
-The bootstrap skill in this repository currently runs:
+```bash
+python -m unittest discover -s tests -v
+bash -n install.sh bin/harness-install bin/harness-update bin/harness-status bin/libharness.sh
+```
 
-- `./seed_harness_contract.py` from within the bootstrap skill directory
-- `./validate_harness_contract.py` from within the bootstrap skill directory
-
-The seed script creates the baseline contract. The validation script checks that required files and directories exist and that `harness.yml` conforms to the expected capability schema.
-
-## Installer Commands
-
-The repository now includes:
-
-- [bin/harness-install](/Users/darren/dev/harness/bin/harness-install): clone or fetch the canonical local repo, select a channel, and install symlinked skills into any detected targets
-- [bin/harness-update](/Users/darren/dev/harness/bin/harness-update): fetch updates for the installed channel and repair missing or broken symlinks without recreating healthy ones
-- [bin/harness-status](/Users/darren/dev/harness/bin/harness-status): show repo path, selected channel, repo version, installed version, installed targets, and broken symlinks
-
-The repo version is tracked in `version.json`. Local install metadata such as the selected channel and installed version is stored in `~/.local/share/harness/.install-config`.
-
-## Available Skills
-
-This repository includes reusable skills for:
-
-- analyzing ideas into PRDs
-- turning PRDs into architecture and detailed designs
-- planning implementation slices
-- developing planned work
-- bootstrapping new target repositories
-- reviewing changes
-- fixing bugs
-- validating harness work items and repository contract structure
-- updating planning docs after implementation drift
-
-Those skills are intended to be installed once and reused across many projects.
-
-## Intention
-
-This repository exists to make agent-driven engineering more repeatable. The harness is deliberately stack-agnostic and domain-agnostic, but it is not convention-agnostic. Reuse comes from keeping the skills generic while requiring each target repository to expose a consistent, inspectable operating context that both humans and agents can trust.
+Tests exercise schema failures, evidence paths, safe repeated updates, compact workflows,
+bootstrap preservation and actual namespaced installation links in temporary directories.
+[Workflow dry runs](tests/workflow-dry-runs.md) document instruction-level assessment;
+they do not prove live runtime agent behavior. No issue mutations, production actions,
+or releases are needed to test the harness.

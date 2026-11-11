@@ -1,22 +1,10 @@
 ---
 name: harness-update_docs
-description: Reconcile work-item docs after implementation drift by updating PRD, FDD, and plan artifacts under docs/exec-plans/current/ and re-validating them.
-examples:
-  - "$harness-update_docs docs/exec-plans/current/docs-import"
-  - "$harness-update_docs docs/exec-plans/current/course-authoring/docs-import"
-when_to_use:
-  - "Implementation has drifted from the documented plan or design."
-  - "Validation is failing and the task is to repair work-item artifacts."
-when_not_to_use:
-  - "Net-new feature definition before coding."
+description: Reconcile authoritative work-item documents with changed scope or implementation.
 ---
 
-## Required Resources
-Always load before updating docs:
+Start with the request, applicable repository instructions (including `AGENTS.md`), and the artifact being acted on. Investigate affected code progressively; read architecture, domain, operations, security, testing, tooling, or issue guidance when relevant to the next decision. Read `harness.yml` when configured behavior matters. Reuse unchanged context; reread after changes, missing handoff context, or uncertainty. No context-loading log is required.
 
-- `references/decision_log.md`
-- `references/drift_mapping.md`
-- `references/input_resolution.md`
-- `references/definition_of_done.md`
-- `references/validation.md`
-- `assets/templates/decision_entry_template.md`
+Compare the requested change and inspected implementation with existing authoritative artifacts. Update requirements and product scope for changed acceptance behavior, design for interfaces/architecture/data contracts, and plan for task order/progress. Do not create unrelated documents or append duplicate decision logs.
+
+Do not silently alter requirements to make code compliant. Resolve material scope decisions using existing authorization or ask when a genuine decision remains. Record each material decision once and link where helpful. Validate changed structured inputs only. Report changed paths, substantive reconciliations and unresolved mismatches. Ordinary implementation performs this maintenance directly; invoking this skill is optional.

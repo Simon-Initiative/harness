@@ -1,34 +1,10 @@
 ---
 name: harness-prototype
-description: Build a fast, low-ceremony prototype to validate an idea quickly, then report the shortest path to production hardening.
-examples:
-  - "$harness-prototype Build a quick spike for inline editing"
-  - "Prototype a rough ingestion flow for uploaded content"
-when_to_use:
-  - "The user wants a throwaway spike, proof of concept, or feasibility check."
-when_not_to_use:
-  - "The task is a bug fix requiring regression-first workflow."
-  - "The task needs durable planning artifacts first."
+description: Run a small experiment to answer a concrete feasibility question.
 ---
 
-## Required Resources
-Always load before prototyping:
+Start with the request, applicable repository instructions (including `AGENTS.md`), and the artifact being acted on. Investigate affected code progressively; read architecture, domain, operations, security, testing, tooling, or issue guidance when relevant to the next decision. Read `harness.yml` when configured behavior matters. Reuse unchanged context; reread after changes, missing handoff context, or uncertainty. No context-loading log is required.
 
-- `references/persona.md`
-- `references/approach.md`
-- `references/considerations.md`
-- `references/output_requirements.md`
-- `ARCHITECTURE.md`
-- `harness.yml`
-- `docs/STACK.md`
-- `docs/TOOLING.md`
-- `docs/TESTING.md`
-- `docs/PRODUCT_SENSE.md`
-- `docs/FRONTEND.md`
-- `docs/BACKEND.md`
+Define the question and the observation that would answer it. Build the smallest useful experiment and run the smoke check or measurement needed to answer that question. Skip production hardening and broad regression work unless relevant or requested.
 
-## Workflow
-1. Define the prototype question being answered.
-2. Implement the smallest runnable prototype that answers it.
-3. Skip hardening (that means NO testing also) unless the user explicitly asks for it.
-4. Report what was validated, what remains unknown, and the shortest path to productionization.
+Report what was demonstrated, actual evidence, what remains unknown, and the practical path to production. No spec pack is required. If delivering code, perform the final review after the experiment unless automatic review is disabled; describe experimental limitations to the reviewer.

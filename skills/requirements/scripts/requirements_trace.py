@@ -1,206 +1,133 @@
 #!/usr/bin/env python3
-"""Manage and validate requirements.yml traceability for harness work items."""
-
-from __future__ import annotations
-
+"""Validate structure and explicit file references; never infer behavioral coverage."""
 from pathlib import Path
 import argparse
+import os
 import re
-import sys
-
+import tempfile
 try:
     import yaml
-except Exception as exc:  # pragma: no cover
-    print(f"ERROR: PyYAML is required: {exc}")
-    raise SystemExit(1)
-
-AC_PATTERN = re.compile(r"\bAC-\d{3}\b")
-FR_PATTERN = re.compile(r"\bFR-\d{3}\b")
+except ImportError:
+    raise SystemExit("ERROR: PyYAML is required; install it with python -m pip install PyYAML")
 
 
-def load_yaml(path: Path) -> dict:
-    if not path.exists():
-        return {}
-    return yaml.safe_load(path.read_text()) or {}
+class UniqueLoader(yaml.SafeLoader):
+    pass
 
 
-def dump_yaml(path: Path, data: dict) -> None:
-    path.write_text(yaml.safe_dump(data, sort_keys=False))
+def mapping(loader, node):
+    result = {}
+    for key, value in node.value:
+        key = loader.construct_object(key)
+        if not isinstance(key, str) or key in result:
+            raise ValueError(f'duplicate or non-string YAML key: {key!r}')
+        result[key] = loader.construct_object(value)
+    return result
 
 
-def requirements_path(work_item_dir: Path) -> Path:
-    return work_item_dir / 'requirements.yml'
+UniqueLoader.add_constructor(yaml.resolver.BaseResolver.DEFAULT_MAPPING_TAG, mapping)
 
 
-def ensure_doc(work_item_dir: Path) -> dict:
-    path = requirements_path(work_item_dir)
-    if path.exists():
-        return load_yaml(path)
-    return {'work_item': work_item_dir.name, 'requirements': [], 'acceptance_criteria': []}
+def load(path):
+    return yaml.load(path.read_text(), Loader=UniqueLoader)
 
 
-def validate_doc(doc: dict) -> list[str]:
-    errors: list[str] = []
-    seen_fr = set()
-    seen_ac = set()
-    for item in doc.get('requirements', []):
-        rid = item.get('id')
-        if not rid:
-            errors.append('requirement entry missing id')
-        elif rid in seen_fr:
-            errors.append(f'duplicate requirement id: {rid}')
-        else:
-            seen_fr.add(rid)
-    for item in doc.get('acceptance_criteria', []):
-        aid = item.get('id')
-        if not aid:
-            errors.append('acceptance criterion entry missing id')
-        elif aid in seen_ac:
-            errors.append(f'duplicate acceptance criterion id: {aid}')
-        else:
-            seen_ac.add(aid)
-    return errors
+def fields(value, required, optional=()):
+    if not isinstance(value, dict):
+        raise ValueError('expected a mapping')
+    missing = set(required) - value.keys()
+    unknown = value.keys() - set(required) - set(optional)
+    if missing or unknown:
+        raise ValueError(f'missing fields {sorted(missing)}; unsupported fields {sorted(unknown)}. See requirements/references/schema.md for migration.')
 
 
-def next_id(prefix: str, existing: list[str]) -> str:
-    nums = [int(x.split('-')[1]) for x in existing if x.startswith(prefix + '-')]
-    return f"{prefix}-{(max(nums) + 1) if nums else 1:03d}"
+def nonempty(value, label):
+    if not isinstance(value, str) or not value.strip():
+        raise ValueError(f'{label} must be a nonempty string')
 
 
-def action_capture(work_item_dir: Path, bulk_file: str | None) -> int:
-    doc = ensure_doc(work_item_dir)
-    if not bulk_file:
-        print('ERROR: --bulk-file is required for capture')
-        return 1
-    bulk_path = Path(bulk_file)
-    if not bulk_path.is_absolute():
-        bulk_path = (work_item_dir / bulk_file).resolve()
-    payload = load_yaml(bulk_path)
-    fr_existing = [x.get('id', '') for x in doc.get('requirements', [])]
-    ac_existing = [x.get('id', '') for x in doc.get('acceptance_criteria', [])]
-    for item in payload.get('requirements', []):
-        entry = dict(item)
-        entry.setdefault('id', next_id('FR', fr_existing))
-        fr_existing.append(entry['id'])
-        doc.setdefault('requirements', []).append(entry)
-    for item in payload.get('acceptance_criteria', []):
-        entry = dict(item)
-        entry.setdefault('id', next_id('AC', ac_existing))
-        ac_existing.append(entry['id'])
-        doc.setdefault('acceptance_criteria', []).append(entry)
-    errors = validate_doc(doc)
-    if errors:
-        for error in errors:
-            print(f'ERROR: {error}')
-        return 1
-    dump_yaml(requirements_path(work_item_dir), doc)
-    print(f'Captured requirements into {requirements_path(work_item_dir)}')
-    return 0
+def sequence(value, label):
+    if not isinstance(value, list) or not value:
+        raise ValueError(f'{label} must be a nonempty list')
 
 
-def action_validate_structure(work_item_dir: Path) -> int:
-    doc = load_yaml(requirements_path(work_item_dir))
-    errors = validate_doc(doc)
-    if errors:
-        for error in errors:
-            print(f'ERROR: {error}')
-        return 1
-    print('requirements.yml structure is valid')
-    return 0
+def validate(doc, work, repo=None):
+    fields(doc, ('version', 'requirements'))
+    if type(doc['version']) is not int or doc['version'] != 1:
+        raise ValueError('unsupported requirements version; expected 1')
+    sequence(doc['requirements'], 'requirements')
+    seen = set()
+    def identifier(value, prefix):
+        if not isinstance(value, str) or not re.fullmatch(prefix + r'-\d{3,}', value):
+            raise ValueError(f'invalid {prefix} identifier: {value!r}')
+        if value in seen:
+            raise ValueError(f'duplicate identifier: {value}')
+        seen.add(value)
+    for fr in doc['requirements']:
+        fields(fr, ('id', 'title', 'acceptance_criteria'))
+        identifier(fr['id'], 'FR'); nonempty(fr['title'], 'requirement title')
+        sequence(fr['acceptance_criteria'], 'acceptance_criteria')
+        for ac in fr['acceptance_criteria']:
+            fields(ac, ('id', 'title'), ('evidence',))
+            identifier(ac['id'], 'AC'); nonempty(ac['title'], 'criterion title')
+            evidence = ac.get('evidence', [])
+            if not isinstance(evidence, list):
+                raise ValueError('evidence must be a list')
+            for ev in evidence:
+                fields(ev, ('path', 'supports'), ('command', 'result'))
+                nonempty(ev['supports'], 'evidence supports')
+                nonempty(ev['path'], 'evidence path')
+                prefix, sep, relative = ev['path'].partition(':')
+                base = work if prefix == 'work' else repo if prefix == 'repo' else None
+                if not sep or base is None or not relative or Path(relative).is_absolute():
+                    raise ValueError('evidence path needs work:relative/file or repo:relative/file with --repo-root')
+                base = base.resolve(); target = (base / relative).resolve()
+                if not target.is_relative_to(base) or not target.is_file():
+                    raise ValueError(f'invalid evidence path: {ev["path"]}')
+                if ('command' in ev) != ('result' in ev):
+                    raise ValueError('execution evidence requires both command and result')
+                for key in ('command', 'result'):
+                    if key in ev: nonempty(ev[key], key)
+    return doc
 
 
-def refs_in_file(path: Path) -> tuple[set[str], set[str]]:
-    if not path.exists():
-        return set(), set()
-    text = path.read_text()
-    return set(FR_PATTERN.findall(text)), set(AC_PATTERN.findall(text))
+def capture(work, payload, repo=None):
+    incoming = validate(load(payload), work, repo)
+    target = work / 'requirements.yml'
+    current = validate(load(target), work, repo) if target.exists() else {'version': 1, 'requirements': []}
+    by_id = {fr['id']: fr for fr in current['requirements']}
+    by_id.update({fr['id']: fr for fr in incoming['requirements']})
+    merged = validate({'version': 1, 'requirements': list(by_id.values())}, work, repo)
+    name = None
+    try:
+        with tempfile.NamedTemporaryFile(mode='w', dir=work, delete=False) as tmp:
+            name = tmp.name
+            yaml.safe_dump(merged, tmp, sort_keys=False)
+        os.replace(name, target)
+    finally:
+        if name and Path(name).exists(): Path(name).unlink()
 
 
-def verify_doc_refs(doc: dict, refs: tuple[set[str], set[str]], label: str) -> int:
-    _fr_refs, ac_refs = refs
-    missing = []
-    for item in doc.get('acceptance_criteria', []):
-        if item.get('id') not in ac_refs:
-            missing.append(item.get('id'))
-    if missing:
-        print(f'ERROR: missing {label} references for: {missing}')
-        return 1
-    print(f'{label} references verified')
-    return 0
-
-
-def action_verify_fdd(work_item_dir: Path) -> int:
-    doc = load_yaml(requirements_path(work_item_dir))
-    return verify_doc_refs(doc, refs_in_file(work_item_dir / 'fdd.md'), 'fdd')
-
-
-def action_verify_plan(work_item_dir: Path) -> int:
-    doc = load_yaml(requirements_path(work_item_dir))
-    return verify_doc_refs(doc, refs_in_file(work_item_dir / 'plan.md'), 'plan')
-
-
-def action_verify_implementation(work_item_dir: Path) -> int:
-    doc = load_yaml(requirements_path(work_item_dir))
-    repo_root = work_item_dir
-    while repo_root != repo_root.parent and not (repo_root / '.git').exists():
-        repo_root = repo_root.parent
-    refs = set()
-    for path in repo_root.rglob('*'):
-        if path.is_file() and path.suffix in {'.py', '.js', '.ts', '.tsx', '.ex', '.exs', '.rb', '.go', '.java', '.kt', '.rs'}:
-            refs.update(AC_PATTERN.findall(path.read_text(errors='ignore')))
-    missing = [item.get('id') for item in doc.get('acceptance_criteria', []) if item.get('id') not in refs]
-    if missing:
-        print(f'ERROR: missing implementation proof for: {missing}')
-        return 1
-    print('implementation references verified')
-    return 0
-
-
-def action_master_validate(work_item_dir: Path, stage: str | None) -> int:
-    doc = load_yaml(requirements_path(work_item_dir))
-    errors = validate_doc(doc)
-    if errors:
-        for error in errors:
-            print(f'ERROR: {error}')
-        return 1
-    if stage == 'fdd_only':
-        return action_verify_fdd(work_item_dir)
-    if stage == 'plan_present':
-        return max(action_verify_fdd(work_item_dir), action_verify_plan(work_item_dir))
-    if stage == 'implementation_complete':
-        return max(action_verify_fdd(work_item_dir), action_verify_plan(work_item_dir), action_verify_implementation(work_item_dir))
-    print('requirements.yml master validation passed')
-    return 0
-
-
-def main() -> int:
-    parser = argparse.ArgumentParser()
-    parser.add_argument('work_item_dir', help='Work item dir, e.g. docs/exec-plans/current/my-work-item')
-    parser.add_argument('--action', required=True)
-    parser.add_argument('--stage')
-    parser.add_argument('--bulk-file')
+def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('work_item_dir', type=Path)
+    parser.add_argument('--action', default='validate', choices=['validate', 'capture'])
+    parser.add_argument('--bulk-file', type=Path)
+    parser.add_argument('--repo-root', type=Path)
     args = parser.parse_args()
-
-    work_item_dir = Path(args.work_item_dir)
-    if not work_item_dir.exists():
-        print(f'ERROR: work item directory not found: {work_item_dir}')
-        return 1
-
-    if args.action == 'capture':
-        return action_capture(work_item_dir, args.bulk_file)
-    if args.action == 'validate_structure':
-        return action_validate_structure(work_item_dir)
-    if args.action == 'verify_fdd':
-        return action_verify_fdd(work_item_dir)
-    if args.action == 'verify_plan':
-        return action_verify_plan(work_item_dir)
-    if args.action == 'verify_implementation':
-        return action_verify_implementation(work_item_dir)
-    if args.action == 'master_validate':
-        return action_master_validate(work_item_dir, args.stage)
-    print(f'ERROR: unsupported action: {args.action}')
-    return 1
+    try:
+        if not args.work_item_dir.is_dir(): raise ValueError('work item directory does not exist')
+        if args.action == 'capture':
+            if args.bulk_file is None: raise ValueError('capture requires --bulk-file')
+            payload = args.bulk_file if args.bulk_file.is_absolute() else args.work_item_dir / args.bulk_file
+            capture(args.work_item_dir, payload, args.repo_root)
+        else:
+            validate(load(args.work_item_dir / 'requirements.yml'), args.work_item_dir, args.repo_root)
+    except (OSError, ValueError, yaml.YAMLError) as exc:
+        parser.exit(1, f'ERROR: {exc}\n')
+    print('Structure and explicit evidence paths valid. Execution and semantic coverage are not verified.')
+    return 0
 
 
 if __name__ == '__main__':
-    sys.exit(main())
+    raise SystemExit(main())
